@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  password String
+  name     String?
+
+  @@map("users")
+}
+
+model Subject {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  thumbnail   String
+  createdAt   DateTime @default(now())
+
+  tests Test[]
+}
+
+model Test {
+  id          Int      @id @default(autoincrement())
+  subjectId   Int
+  title       String
+  description String
+  thumbnail   String
+  createdAt   DateTime @default(now())
+
+  subject   Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  questions Question[]
+
+  @@index([subjectId])
+}
+
+model Question {
+  id           Int          @id @default(autoincrement())
+  testId       Int
+  questionText String
+  image        String?
+  type         QuestionType
+
+  test    Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  options Option[]
+
+  @@index([testId])
+}
+
+model Option {
+  id         Int     @id @default(autoincrement())
+  questionId Int
+  text       String
+  isCorrect  Boolean @default(false)
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+}
+
+enum QuestionType {
+  MCQ
+  YES_NO
+  SCALE
+}
+
