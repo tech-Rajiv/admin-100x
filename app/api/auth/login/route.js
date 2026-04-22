@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
 import { prisma } from "@/lib/db";
 import { setAuthCookie, signAuthToken } from "@/lib/auth";
 
