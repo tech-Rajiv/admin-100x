@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import { corsHeaders, corsOptions } from "@/lib/cors";
 
 export const runtime = "nodejs";
+
+export async function OPTIONS(request) {
+  return corsOptions(request, "GET, OPTIONS");
+}
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -11,7 +16,10 @@ export async function GET(request) {
   if (subjectId != null && subjectId !== "") {
     const sid = Number(subjectId);
     if (!Number.isFinite(sid)) {
-      return NextResponse.json({ error: "Invalid subjectId" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid subjectId" },
+        { status: 400, headers: corsHeaders(request, "GET, OPTIONS") }
+      );
     }
     where.subjectId = sid;
   }
@@ -21,7 +29,7 @@ export async function GET(request) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ tests });
+  return NextResponse.json({ tests }, { headers: corsHeaders(request, "GET, OPTIONS") });
 }
 
 export async function POST(request) {

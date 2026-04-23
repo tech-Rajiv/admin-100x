@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import { corsHeaders, corsOptions } from "@/lib/cors";
 
 export const runtime = "nodejs";
 
@@ -9,17 +10,34 @@ function asId(params) {
   return Number.isFinite(id) ? id : null;
 }
 
+export async function OPTIONS(request) {
+  return corsOptions(request, "GET, OPTIONS");
+}
+
 export async function GET(request, { params }) {
   const id = asId(params);
-  if (!id) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+  if (!id) {
+    return NextResponse.json(
+      { error: "Invalid id" },
+      { status: 400, headers: corsHeaders(request, "GET, OPTIONS") }
+    );
+  }
 
   const subject = await prisma.subject.findUnique({
     where: { id },
     include: { tests: { orderBy: { createdAt: "desc" } } },
   });
-  if (!subject) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!subject) {
+    return NextResponse.json(
+      { error: "Not found" },
+      { status: 404, headers: corsHeaders(request, "GET, OPTIONS") }
+    );
+  }
 
-  return NextResponse.json({ subject });
+  return NextResponse.json(
+    { subject },
+    { headers: corsHeaders(request, "GET, OPTIONS") }
+  );
 }
 
 export async function PUT(request, { params }) {

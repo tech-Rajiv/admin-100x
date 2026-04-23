@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import { corsHeaders, corsOptions } from "@/lib/cors";
 
 export const runtime = "nodejs";
 
@@ -27,14 +28,21 @@ function validateOptions(options) {
 }
 
 export async function GET(request) {
+  // CORS preflight handled by OPTIONS below; always include CORS on responses.
   const { searchParams } = new URL(request.url);
   const testId = searchParams.get("testId");
   if (testId == null || testId === "") {
-    return NextResponse.json({ error: "testId is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "testId is required" },
+      { status: 400, headers: corsHeaders(request, "GET, OPTIONS") }
+    );
   }
   const tid = Number(testId);
   if (!Number.isFinite(tid)) {
-    return NextResponse.json({ error: "Invalid testId" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid testId" },
+      { status: 400, headers: corsHeaders(request, "GET, OPTIONS") }
+    );
   }
 
   const questions = await prisma.question.findMany({
@@ -42,7 +50,14 @@ export async function GET(request) {
     orderBy: { id: "asc" },
     include: { options: { orderBy: { id: "asc" } } },
   });
-  return NextResponse.json({ questions });
+  return NextResponse.json(
+    { questions },
+    { headers: corsHeaders(request, "GET, OPTIONS") }
+  );
+}
+
+export async function OPTIONS(request) {
+  return corsOptions(request, "GET, OPTIONS");
 }
 
 export async function POST(request) {

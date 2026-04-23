@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
+import { corsHeaders, corsOptions } from "@/lib/cors";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function OPTIONS(request) {
+  return corsOptions(request, "GET, OPTIONS");
+}
+
+export async function GET(request) {
   const subjects = await prisma.subject.findMany({
     orderBy: { createdAt: "desc" },
   });
-  return NextResponse.json({ subjects });
+  return NextResponse.json({ subjects }, { headers: corsHeaders(request, "GET, OPTIONS") });
 }
 
 export async function POST(request) {
