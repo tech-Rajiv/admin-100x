@@ -4,6 +4,7 @@ const AUTH_COOKIE_NAME = "admin_token";
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
+  const method = request.method;
 
   if (
     pathname.startsWith("/_next") ||
@@ -15,7 +16,18 @@ export async function middleware(request) {
 
   const isLoginRoute = pathname === "/login";
   const isAuthApi = pathname.startsWith("/api/auth/");
-  const isPublicApi = isAuthApi; // login/logout are public-ish; logout just clears cookie
+  const isPublicApi =
+    isAuthApi ||
+    // Public read APIs for the consumer app
+    ((method === "GET" || method === "OPTIONS") &&
+      (pathname === "/api/subjects" ||
+        pathname.startsWith("/api/subjects/") ||
+        pathname === "/api/tests" ||
+        pathname.startsWith("/api/tests/") ||
+        pathname === "/api/questions" ||
+        pathname.startsWith("/api/questions/"))) ||
+    // Public evaluation endpoint (called from the consumer app)
+    (pathname === "/api/evaluate" && (method === "POST" || method === "OPTIONS"));
 
   if (isLoginRoute || isPublicApi) {
     return NextResponse.next();
