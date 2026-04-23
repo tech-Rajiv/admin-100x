@@ -5,9 +5,6 @@ import { requireAuth } from "@/lib/auth";
 export const runtime = "nodejs";
 
 export async function GET(request) {
-  const auth = await requireAuth();
-  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { searchParams } = new URL(request.url);
   const subjectId = searchParams.get("subjectId");
   const where = {};

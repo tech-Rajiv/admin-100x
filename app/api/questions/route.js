@@ -27,9 +27,6 @@ function validateOptions(options) {
 }
 
 export async function GET(request) {
-  const auth = await requireAuth();
-  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { searchParams } = new URL(request.url);
   const testId = searchParams.get("testId");
   if (testId == null || testId === "") {

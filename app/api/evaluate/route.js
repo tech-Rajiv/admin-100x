@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAuth } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -30,14 +29,6 @@ export async function OPTIONS(request) {
 }
 
 export async function POST(request) {
-  const auth = await requireAuth();
-  if (!auth) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401, headers: corsHeaders(request) }
-    );
-  }
-
   try {
     const body = await request.json();
     const testId = Number(body?.testId);

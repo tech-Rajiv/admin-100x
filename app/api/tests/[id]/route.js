@@ -10,9 +10,6 @@ function asId(params) {
 }
 
 export async function GET(request, { params }) {
-  const auth = await requireAuth();
-  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const id = asId(params);
   if (!id) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
 
