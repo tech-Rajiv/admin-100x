@@ -1,31 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { corsHeaders, corsOptions } from "@/lib/cors";
 
 export const runtime = "nodejs";
 
-const ALLOWED_ORIGINS = new Set([
-  "https://100xlife.online",
-  "https://www.100xlife.online",
-  // Dev convenience (safe to keep; only applies when Origin matches)
-  "http://localhost:3000",
-  "http://localhost:3001",
-]);
-
-function corsHeaders(request) {
-  const origin = request?.headers?.get?.("origin") || "";
-  const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : "";
-
-  return {
-    ...(allowOrigin ? { "Access-Control-Allow-Origin": allowOrigin } : {}),
-    "Vary": "Origin",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Credentials": "true",
-  };
-}
-
 export async function OPTIONS(request) {
-  return new NextResponse(null, { status: 204, headers: corsHeaders(request) });
+  return corsOptions(request, "POST, OPTIONS");
 }
 
 export async function POST(request) {
@@ -37,7 +17,7 @@ export async function POST(request) {
     if (!Number.isFinite(testId)) {
       return NextResponse.json(
         { error: "testId is required" },
-        { status: 400, headers: corsHeaders(request) }
+        { status: 400, headers: corsHeaders(request, "POST, OPTIONS") }
       );
     }
 
@@ -81,11 +61,11 @@ export async function POST(request) {
       correctAnswers,
       wrongAnswers,
       results,
-    }, { headers: corsHeaders(request) });
+    }, { headers: corsHeaders(request, "POST, OPTIONS") });
   } catch {
     return NextResponse.json(
       { error: "Failed to evaluate answers" },
-      { status: 500, headers: corsHeaders(request) }
+      { status: 500, headers: corsHeaders(request, "POST, OPTIONS") }
     );
   }
 }

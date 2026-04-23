@@ -13,6 +13,7 @@ export async function GET(request) {
   const subjects = await prisma.subject.findMany({
     orderBy: { createdAt: "desc" },
   });
+  console.log("ssss",subjects);
   return NextResponse.json({ subjects }, { headers: corsHeaders(request, "GET, OPTIONS") });
 }
 
