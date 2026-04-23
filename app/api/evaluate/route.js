@@ -4,9 +4,39 @@ import { requireAuth } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
+const ALLOWED_ORIGINS = new Set([
+  "https://100xlife.online",
+  "https://www.100xlife.online",
+  // Dev convenience (safe to keep; only applies when Origin matches)
+  "http://localhost:3000",
+  "http://localhost:3001",
+]);
+
+function corsHeaders(request) {
+  const origin = request?.headers?.get?.("origin") || "";
+  const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : "";
+
+  return {
+    ...(allowOrigin ? { "Access-Control-Allow-Origin": allowOrigin } : {}),
+    "Vary": "Origin",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Credentials": "true",
+  };
+}
+
+export async function OPTIONS(request) {
+  return new NextResponse(null, { status: 204, headers: corsHeaders(request) });
+}
+
 export async function POST(request) {
   const auth = await requireAuth();
-  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!auth) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401, headers: corsHeaders(request) }
+    );
+  }
 
   try {
     const body = await request.json();
@@ -14,7 +44,10 @@ export async function POST(request) {
     const answers = Array.isArray(body?.answers) ? body.answers : [];
 
     if (!Number.isFinite(testId)) {
-      return NextResponse.json({ error: "testId is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "testId is required" },
+        { status: 400, headers: corsHeaders(request) }
+      );
     }
 
     const questions = await prisma.question.findMany({
@@ -57,11 +90,11 @@ export async function POST(request) {
       correctAnswers,
       wrongAnswers,
       results,
-    });
+    }, { headers: corsHeaders(request) });
   } catch {
     return NextResponse.json(
       { error: "Failed to evaluate answers" },
-      { status: 500 }
+      { status: 500, headers: corsHeaders(request) }
     );
   }
 }
